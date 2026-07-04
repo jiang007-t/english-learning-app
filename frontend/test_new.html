@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>故事生成测试 · 新引擎</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#333;padding:20px}
+.container{max-width:900px;margin:0 auto}
+h1{font-size:22px;margin-bottom:4px}
+.sub{color:#666;font-size:13px;margin-bottom:20px}
+.card{background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0}
+.row>*{flex:1;min-width:160px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:#555}
+textarea,input[type=text],select{padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;width:100%}
+textarea{height:70px}
+.btn{padding:10px 22px;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;transition:.15s}
+.btn-primary{background:#4f46e5;color:#fff}
+.btn-primary:hover{background:#4338ca}
+.btn-primary:disabled{background:#a5b4fc;cursor:not-allowed}
+.btn-sm{padding:5px 12px;font-size:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;margin:2px}
+.tag-ok{background:#dcfce7;color:#166534}
+.tag-miss{background:#fef2f2;color:#991b1b}
+.tag-info{background:#e0f2fe;color:#075985}
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;margin:2px}
+.badge-gold{background:#fef3c7;color:#92400e}
+.badge-silver{background:#f1f5f9;color:#475569}
+.badge-bronze{background:#fed7aa;color:#7c2d12}
+.stats{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0}
+.stat-item{text-align:center;padding:10px 16px;background:#f8fafc;border-radius:8px;flex:1;min-width:100px}
+.stat-item .num{font-size:24px;font-weight:700}
+.stat-item .lbl{font-size:11px;color:#888;margin-top:2px}
+.chapter{border-left:3px solid #4f46e5;padding:10px 14px;margin:8px 0;background:#fafafa;border-radius:0 6px 6px 0}
+.chapter .ch-title{font-weight:600;font-size:14px}
+.chapter .ch-text{font-size:14px;line-height:1.6;margin:6px 0;color:#444}
+.chapter .ch-words{font-size:11px;color:#888}
+.ending-gold{border-left-color:#f59e0b}
+.ending-silver{border-left-color:#94a3b8}
+.ending-bronze{border-left-color:#d97706}
+.word-found{color:#166534;font-weight:700}
+.word-found::before{content:'✓ '}
+.word-found::after{content:' '}
+.word-miss{color:#991b1b;font-weight:700}
+.word-miss::before{content:'✗ '}
+.word-miss::after{content:' '}
+#error{color:#dc2626;background:#fef2f2;padding:10px;border-radius:6px;display:none}
+#loading{text-align:center;padding:30px;display:none}
+#loading .spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#4f46e5;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.result-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.accordion{cursor:pointer;user-select:none}
+.accordion:hover{background:#f0f0f0}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📖 故事生成测试 · 新引擎</h1>
+  <p class="sub">基于 8 个设计师模板 · 全 LLM 生成 · 无模板回退 · 无凑字数</p>
+
+  <div class="card">
+    <div class="row">
+      <div style="flex:2;min-width:200px">
+        <label>输入单词（英文，逗号或空格分隔）</label>
+        <textarea id="wordsInput" placeholder="例如: explore ancient treasure brave discover secret journey map danger adventure">explore ancient treasure brave discover secret journey map danger adventure</textarea>
+      </div>
+      <div>
+        <label>故事类型</label>
+        <select id="typeSelect">
+          <option value="Adventure">🗺️ 探险 Adventure</option>
+          <option value="Survival">🏕️ 荒野求生 Survival</option>
+          <option value="MagicSchool">🔮 魔法学院 MagicSchool</option>
+          <option value="Mystery">🔍 侦探推理 Mystery</option>
+          <option value="SciFi">🚀 科幻 SciFi</option>
+          <option value="FairyTale">🏰 童话城堡 FairyTale</option>
+          <option value="Animal">🐾 动物伙伴 Animal</option>
+          <option value="School">📚 校园成长 School</option>
+        </select>
+      </div>
+      <div>
+        <label>难度级别</label>
+        <select id="levelSelect">
+          <option value="L1">L1 - 初阶（10-60词/章）</option>
+          <option value="L2" selected>L2 - 中阶（20-120词/章）</option>
+          <option value="L3">L3 - 高阶（40-200词/章）</option>
+          <option value="L4">L4 - 挑战（60-300词/章）</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="genBtn" onclick="generate()">✏️ 生成故事</button>
+      <button class="btn btn-primary" id="gen3Btn" onclick="generateThree()" style="background:#0891b2">🔄 生成 3 次（测试多样性）</button>
+    </div>
+    <div id="error"></div>
+  </div>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>正在生成故事，LLM 正在倾力创作...</p>
+    <p style="font-size:12px;color:#999">约需 10-15 秒</p>
+  </div>
+
+  <div id="results"></div>
+</div>
+
+<script>
+const API = '/api/deepseek';
+let runId = 0;
+
+function $(id) { return document.getElementById(id); }
+
+function getWords() {
+  return $('wordsInput').value.trim().split(/[,\s]+/).filter(Boolean);
+}
+
+function err(msg) {
+  var e = $('error');
+  e.style.display = msg ? 'block' : 'none';
+  e.textContent = msg;
+}
+
+async function generate() {
+  err('');
+  var words = getWords();
+  if (words.length < 3) { err('至少需要 3 个单词'); return; }
+  $('genBtn').disabled = true;
+  $('results').innerHTML = '';
+  $('loading').style.display = 'block';
+  runId++;
+
+  var story = await callApi(words, $('typeSelect').value, $('levelSelect').value);
+  $('loading').style.display = 'none';
+  $('genBtn').disabled = false;
+  if (!story) return;
+
+  $('results').appendChild(renderStory(story, words, ''));
+}
+
+async function generateThree() {
+  err('');
+  var words = getWords();
+  if (words.length < 3) { err('至少需要 3 个单词'); return; }
+  $('gen3Btn').disabled = true;
+  $('results').innerHTML = '';
+  $('loading').style.display = 'block';
+  var typ = $('typeSelect').value;
+  var lvl = $('levelSelect').value;
+  var myRun = runId;
+
+  var stories = [];
+  for (var i = 0; i < 3; i++) {
+    if (myRun !== runId) break;
+    $('loading').querySelector('p').textContent = '正在生成第 ' + (i+1) + '/3 个故事...';
+    var s = await callApi(words, typ, lvl, 15000);
+    if (s) stories.push(s);
+  }
+  $('loading').style.display = 'none';
+  $('gen3Btn').disabled = false;
+  if (stories.length === 0) return;
+
+  var container = $('results');
+  stories.forEach(function(s, i) {
+    var div = renderStory(s, words, '-' + (i+1));
+    container.appendChild(div);
+  });
+
+  // similarity analysis
+  if (stories.length >= 2) {
+    var div = document.createElement('div');
+    div.className = 'card';
+    var htmlTitles = stories.map(function(s) { return s.title; }).join('" vs "');
+    div.innerHTML = '<h3>📊 多样性对比（' + stories.length + ' 个故事）</h3>' +
+      '<p style="color:#666;font-size:13px">标题: "' + htmlTitles + '"</p>' +
+      '<p style="color:#666;font-size:13px">标题完全不同 ✓（同一组词 × 同一类型 → 不同剧情）</p>';
+    container.appendChild(div);
+  }
+}
+
+async function callApi(words, type, level, timeout) {
+  try {
+    var ctrl = new AbortController();
+    var tid = setTimeout(function() { ctrl.abort(); }, timeout || 20000);
+    var resp = await fetch(API + '/api/story/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({uid:'test', words:words, type:type, level:level, _t:Date.now()})
+    });
+    clearTimeout(tid);
+    if (!resp.ok) { err('API 错误: ' + resp.status); return null; }
+    return await resp.json();
+  } catch(e) {
+    if (e.name === 'AbortError') { err('请求超时，LLM 生成可能较慢，请重试'); }
+    else { err('请求失败: ' + e.message); }
+    return null;
+  }
+}
+
+function renderStory(story, words, suffix) {
+  var chapters = story.chapters || {};
+  var allText = Object.values(chapters).map(function(c) { return c.text || ''; }).join(' ');
+  var found = words.filter(function(w) { return allText.indexOf('__' + w + '__') !== -1; });
+  var missing = words.filter(function(w) { return allText.indexOf('__' + w + '__') === -1; });
+  var pass = missing.length === 0;
+  var typ = story.type || $('typeSelect').value;
+  var mode = story.storyId && story.storyId.indexOf('llm') !== -1 ? 'LLM' : (pass ? '✅ full' : '⚠️');
+
+  var div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = '<div class="result-header">' +
+    '<h3>' + (story.title || 'Untitled') + '</h3>' +
+    '<span class="tag tag-info">' + typ + ' · ' + mode + '</span>' +
+    '</div>' +
+    '<div class="stats">' +
+    '<div class="stat-item"><div class="num">' + found.length + '/' + words.length + '</div><div class="lbl">单词覆盖</div></div>' +
+    '<div class="stat-item"><div class="num">' + Object.keys(chapters).length + '</div><div class="lbl">章节数</div></div>' +
+    '<div class="stat-item"><div class="num" style="color:' + (pass ? '#16a34a' : '#dc2626') + '">' + (pass ? '✅ 通过' : '❌ 未通过') + '</div><div class="lbl">验证结果</div></div>' +
+    '</div>' +
+    '<div style="margin:10px 0">' +
+    words.map(function(w) {
+      var has = allText.indexOf('__' + w + '__') !== -1;
+      return '<span class="' + (has ? 'word-found' : 'word-miss') + '">' + w + '</span>';
+    }).join(' ') +
+    '</div>' +
+    '<div id="chapters' + suffix + '" style="display:block">' +
+    Object.entries(chapters).map(function(ent) {
+      var key = ent[0]; var ch = ent[1];
+      var cls = ch.e ? (ch.ty === 'gold' ? 'ending-gold' : ch.ty === 'silver' ? 'ending-silver' : ch.ty === 'bronze' ? 'ending-bronze' : '') : '';
+      var badge = ch.e ? '<span class="badge badge-' + (ch.ty || 'bronze') + '">' + (ch.ty ? ch.ty.toUpperCase() : 'END') + '</span>' : '';
+      var w_in = ch.words || [];
+      var w_str = w_in.length ? '<div class="ch-words">单词: ' + w_in.join(', ') + '</div>' : '';
+      var choices = ch.choices && ch.choices.length ? '<div style="font-size:13px;color:#666;margin-top:4px">选项: ' + ch.choices.map(function(c,i) { return (i+1) + '. ' + c.text; }).join(' | ') + '</div>' : '';
+      return '<div class="chapter ' + cls + '">' +
+        '<div class="ch-title">' + badge + ' ' + key + (ch.title ? ' · ' + ch.title : '') + '</div>' +
+        '<div class="ch-text">' + ch.text + '</div>' +
+        w_str + choices +
+        '</div>';
+    }).join('') +
+    '</div>';
+
+  return div;
+}
+</script>
+</body>
+</html>

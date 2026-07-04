@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Lost Temple - An Adventure Story (Template)</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;background:#0a0a2e;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px}
+  .container{width:100%;max-width:640px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:24px;padding:36px 32px;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+  .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .badge{background:rgba(255,215,0,0.15);color:#ffd700;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:bold;letter-spacing:1px}
+  .step{font-size:12px;color:rgba(255,255,255,0.35)}
+  .game-title{text-align:center;margin-bottom:6px}
+  .game-title h1{font-size:26px;color:#ffd700;font-weight:900}
+  .chapter-title{text-align:center;color:rgba(255,255,255,0.55);font-size:14px;margin-bottom:18px;letter-spacing:2px}
+  .story-box{background:rgba(255,255,255,0.04);border-left:3px solid rgba(255,215,0,0.4);padding:18px 22px;border-radius:0 12px 12px 0;margin-bottom:26px;min-height:60px;line-height:2;font-size:16px;color:#e8e8e8}
+  .choices-label{color:rgba(255,215,0,0.65);font-size:13px;letter-spacing:2px;margin-bottom:12px;text-align:center}
+  .choices{display:flex;flex-direction:column;gap:10px}
+  .choice-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:14px;color:#e0e0e0;font-size:15px;cursor:pointer;transition:all 0.3s;text-align:left;font-family:inherit;line-height:1.6}
+  .choice-btn:hover{background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.4);transform:translateX(4px)}
+  .choice-btn:active{transform:scale(0.98)}
+  .choice-num{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(255,215,0,0.15);color:#ffd700;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px}
+  .ending-screen{text-align:center}
+  .ending-badge{display:inline-block;padding:7px 22px;border-radius:20px;font-weight:900;font-size:13px;letter-spacing:2px;margin-bottom:18px}
+  .ending-title{font-size:24px;color:#ffd700;font-weight:900;margin-bottom:14px}
+  .ending-text{font-size:15px;color:#e0e0e0;line-height:2;margin-bottom:24px}
+  .btn-yellow{display:inline-block;padding:12px 32px;border-radius:30px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all 0.3s;margin:6px;background:linear-gradient(135deg,#ffd700,#ffaa00);color:#1a1a2e;border:none}
+  .btn-ghost{display:inline-block;padding:12px 32px;border-radius:30px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all 0.3s;margin:6px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.25)}
+  .btn-yellow:hover,.btn-ghost:hover{transform:scale(1.05)}
+  .ending-tip{margin-top:18px;padding:14px;background:rgba(255,255,255,0.04);border-radius:12px;font-size:13px;color:rgba(255,255,255,0.5);line-height:1.8}
+  .tag{display:inline-block;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-size:13px;margin:3px}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .story-box,.ending-screen{animation:fadeIn 0.4s ease}
+</style>
+</head>
+<body><div class="container" id="container"><div id="content"></div></div>
+<!--
+=============================================================================
+  WordQuest Story Template:   (Adventure)
+  
+  : The Lost Temple
+  
+  ---------------------------------------------------------------------------
+  1.  (WORDS)
+     10  w  m (Chinese meaning)
+     __word__  
+  
+  2.  (G{})
+     3  
+     start: 3A/B/C 
+     A/B: c2a/c2b c3c4c5e_gold/e_silver5
+     C: c2c c3c c4c c5c e_bronze 5
+  
+     5 2 
+     e:true , ty:'gold'/'silver'/'bronze'
+  
+  3.  (ID)
+     start  c2a c2b c2c
+         c3 (AB)
+         c4 (AB)
+         c5 (AB)  e_gold / e_silver
+     C:
+         c3c  c4c  c5c  e_bronze
+  
+  4. 
+     GAME_TITLE   GAME_TYPE  
+     choices[{t, n}]   words[]  
+     e/ty/bbg/badge/tip
+  
+  5. 
+     R(id) - 
+     makeChoice(nextId, choiceText) - 1200ms
+     E(c) - 
+     S() - Play Again
+     B() - Go Back
+     startReview() - 
+=============================================================================
+-->
+<script>
+// ====================  ====================
+var GAME_TITLE='The Lost Temple';var GAME_TYPE='Adventure';
+
+// ====================  (1010) ====================
+//  w:  m: 
+var WORDS=[
+  {w:'explore',m:'\u63a2\u9669'},{w:'ancient',m:'\u53e4\u8001\u7684'},{w:'treasure',m:'\u5b9d\u85cf'},
+  {w:'brave',m:'\u52c7\u6562\u7684'},{w:'discover',m:'\u53d1\u73b0'},{w:'secret',m:'\u79d8\u5bc6'},
+  {w:'journey',m:'\u65c5\u7a0b'},{w:'map',m:'\u5730\u56fe'},{w:'danger',m:'\u5371\u9669'},{w:'adventure',m:'\u5192\u9669'}
+];
+
+// ====================  (3) ====================
+//
+//  start:
+//   3  A =  B =  C = 
+//        3 
+//   choices[n]ID
+//
+//  :
+//  start(3)  c2a/c2b(2)  c3(2)  c4(2)  c5(2)  e_gold/e_silver
+//  start(3)  c2c(2)     c3c(2)  c4c(2)  c5c(2)  e_bronze
+
+var G={};
+
+// ---------- Chapter 1:  (3) ----------
+G['start']={title:'Chapter 1 \u00b7 The Hidden Map',text:'Rain hammers on your roof. You rummage through Grandpa\'s old attic trunk and find a rolled-up piece of paper \u2014 it\'s an __ancient__ __map__! Yellowed with age, it shows a winding path through jungle and mountains to a place marked "The Sun Temple."<br><br>Your heart races. Could this be the legendary lost __treasure__ that Grandpa always talked about? The __adventure__ of a lifetime is waiting. What do you do?',words:['ancient','map','treasure','adventure'],choices:[{t:'Pack your bag and leave at dawn. An __adventure__ waits for no one!',n:'c2a'},{t:'Study the map carefully first. Every __journey__ needs a plan.',n:'c2b'},{t:'Show it to the town museum first. Maybe they can help.',n:'c2c'}],e:false};
+
+// ----------  A:  ----------
+G['c2a']={title:'Chapter 2 \u00b7 Into the Wild',text:'You pack a backpack with water, snacks, a flashlight, and Grandpa\'s compass. At dawn, you slip out while the world sleeps.<br><br>The jungle path is thick with vines. To be __brave__ means stepping into the unknown. The __map__ leads you to a fork: a dark cave tunnel to the left, or a steep cliff climb to the right. Both paths promise __danger__ \u2014 but which is the right way?',words:['brave','map','danger','explore'],choices:[{t:'Take the cave tunnel. Quick and direct \u2014 just like Grandpa would.',n:'c3'},{t:'Climb the cliff. Higher ground might show the whole path.',n:'c3'}],e:false};
+
+// ----------  B:  ----------
+G['c2b']={title:'Chapter 2 \u00b7 The Scholar\'s Path',text:'You spread the __map__ on the kitchen table and study every line. The symbols are unusual \u2014 they look almost like a language. You copy them into your notebook and head to the library.<br><br>The librarian gasps. "These are Old World runes! They speak of a hidden __treasure__ guarded by three tests: courage, wisdom, and kindness." Your careful preparation is already paying off. A true __adventure__ begins with knowledge.',words:['map','treasure','adventure','discover'],choices:[{t:'Memorize the runes and head out at dawn. Knowledge is your weapon.',n:'c3'},{t:'Ask the librarian to join. Two minds are better than one in a __journey__.',n:'c3'}],e:false};
+
+// ----------  C:  ----------
+G['c2c']={title:'Chapter 2 \u00b7 The Safe Choice',text:'You bring the __ancient__ map to the town museum. Dr. Chen, the curator, pushes up her glasses and studies it carefully.<br><br>"Remarkable! This matches the legend of the Sun Temple we\'ve been researching for years." She offers to organize a proper expedition next month with professional equipment. Part of you feels relief \u2014 but also a tiny twinge of disappointment. Was showing it the right call? Some __secret__ part of you wanted the adventure for yourself.',words:['ancient','secret','discover'],choices:[{t:'Join the museum expedition. A month isn\'t that long to wait.',n:'c3c'},{t:'Slip away tonight on your own. This __treasure__ belongs to your family!',n:'c3c'}],e:false};
+
+// ---------- Chapter 3:  (AB) ----------
+G['c3']={title:'Chapter 3 \u00b7 The First Test',text:'You follow the map deeper into the jungle. Suddenly, a wide river blocks your path. On the far bank stands a stone archway \u2014 the temple entrance!<br><br>A sign carved in stone reads: "Only those with true __brave__ hearts may cross." The river is fast and cold. Nearby, you spot an old rope bridge. It looks weak, but it might hold. A true __journey__ tests everything you are.',words:['brave','journey','discover'],choices:[{t:'Cross the rope bridge. It looks risky, but speed matters.',n:'c4'},{t:'Swim across. Nothing beats a direct, bold approach.',n:'c4'}],e:false};
+
+// ---------- Chapter 4:  (AB) ----------
+G['c4']={title:'Chapter 4 \u00b7 The Heart of the Temple',text:'You made it! The temple interior glows with golden light. Three doors stand before you, each marked with a different symbol: a heart, a brain, and a hand.<br><br>An inscription reads: "One door leads to the __treasure__. One leads to a lesson. One leads to the way home. Choose with your truest self." The air is thick with __secret__ energy. This is the moment that defines your __adventure__.',words:['treasure','secret','adventure'],choices:[{t:'Choose the heart door. Treasure should be earned with feeling.',n:'c5'},{t:'Choose the brain door. Smart thinking is the key to any __discover__.',n:'c5'}],e:false};
+
+// ---------- Chapter 5: (AB) ----------
+G['c5']={title:'Chapter 5 \u00b7 The Final Chamber',text:'The door swings open. A magnificent chamber stretches before you, filled with golden artifacts and glittering gems. In the center sits a chest \u2014 the legendary Sun __treasure__!<br><br>But wait \u2014 is that a trap? The floor tiles look uneven. Some might fall away. And there\'s a note: "Take what you need, not what you want." Your __journey__ has taught you much. Now comes the final test.',words:['treasure','journey','explore'],choices:[{t:'Take only the golden amulet. Enough to prove you were here.',n:'e_gold'},{t:'Take a handful of coins and gems. Share them with the museum.',n:'e_silver'}],e:false};
+
+// ---------- Chapter 3:  (C) ----------
+G['c3c']={title:'Chapter 3 \u00b7 Watching from Afar',text:'The museum expedition sets out with maps, cameras, and experts. You\'re invited as a special guest \u2014 after all, the __map__ was yours. But you walk behind the team, not leading it.<br><br>Still, the jungle is beautiful. Exotic birds call overhead. You jot notes in your journal about every plant you __discover__ along the way. Maybe this __journey__ isn\'t what you imagined \u2014 but it\'s still yours.',words:['map','discover','journey'],choices:[{t:'Take detailed notes for the museum. Become the expedition recorder!',n:'c4c'},{t:'Explore a side path on your own. Something calls to you.',n:'c4c'}],e:false};
+
+// ---------- Chapter 4:  (C) ----------
+G['c4c']={title:'Chapter 4 \u00b7 A Different Kind of Discovery',text:'The side path leads to a small cave, not on any __map__. Inside, you find ancient wall paintings \u2014 stories of people who lived here long before any __treasure__ was hidden.<br><br>Your sketches and photos impress Dr. Chen. She calls them a major archaeological __discover__! The temple __treasure__ might stay hidden, but you\'ve found something just as valuable: a piece of forgotten history.',words:['map','treasure','discover'],choices:[{t:'Document the paintings thoroughly. This is a different kind of __adventure__.',n:'c5c'},{t:'Help the team find the temple entrance. Your notes might hold a clue.',n:'c5c'}],e:false};
+
+// ---------- Chapter 5:  (C) ----------
+G['c5c']={title:'Chapter 5 \u00b7 The Wisdom of Waiting',text:'Dr. Chen finds a side entrance to the temple \u2014 thanks to your notes! The main treasure chamber remains sealed, but the team recovers ancient scrolls and pottery.<br><br>"Your patience made this possible," Dr. Chen says, squeezing your shoulder. "Some __treasure__ is measured not in gold, but in knowledge shared."<br><br>Your name goes on the museum plaque alongside the artifacts. The __adventure__ wasn\'t what you planned \u2014 but it was real, and it was yours.',words:['treasure','adventure','brave'],choices:[{t:'Accept that a quieter path still leads to discovery.',n:'e_bronze'},{t:'Promise yourself: next time, you\'ll be the one leading the way.',n:'e_bronze'}],e:false};
+
+// ====================  (e:true) ====================
+//  ty: 'gold' (Best) | 'silver' (Great) | 'bronze' (Growth)
+//  bbg: 
+//  badge: 
+//  tip: 
+G['e_gold']={e:true,ty:'gold',title:'Ending \u00b7 Heart of Gold',badge:'\u2b50 Best Ending',bbg:'linear-gradient(135deg,#ffd700,#ff8c00)',words:['treasure','brave'],text:'You reach for the golden amulet \u2014 and the instant your fingers touch it, the temple fills with warm light. A gentle voice echoes: "You chose with a pure heart. This __treasure__ is yours."<br><br>The amulet glows softly in your palm. As you exit, the temple seals itself peacefully, as if thanking you for respecting its __secret__.<br><br>Back home, the museum confirms: the amulet is priceless. But for you, it\'s a reminder that true __brave__ comes not from taking everything, but from knowing what truly matters.',tip:'\ud83d\udca1 Choosing with your heart, not greed, unlocked the temple\'s greatest gift!'};
+G['e_silver']={e:true,ty:'silver',title:'Ending \u00b7 Shared Treasure',badge:'\u2728 Great Ending',bbg:'linear-gradient(135deg,#c0c0c0,#7ec8e3)',words:['treasure','discover'],text:'You gather a small bag of coins and gems. The floor trembles slightly as you leave, but the tunnel holds.<br><br>The museum celebrates your __discover__! The coins help fund a new children\'s __explore__ program at the museum. Every kid in town now dreams of finding their own __ancient__ map. Your name is on the classroom wall.<br><br>Sometimes sharing a __treasure__ makes it shine brighter than keeping it all for yourself.',tip:'\ud83d\udca1 Sharing your discovery enriched the whole community. Next time, take only what you need!'};
+G['e_bronze']={e:true,ty:'bronze',title:'Ending \u00b7 A Different Treasure',badge:'\ud83c\udf31 Growth Ending',bbg:'linear-gradient(135deg,#cd7f32,#d4a574)',words:['adventure','brave'],text:'You didn\'t find gold, but your name is on the museum wall. Every visitor reads about the young explorer who discovered the cave paintings.<br><br>"Not every __treasure__ sparkles," Grandpa\'s voice echoes in your memory. He was right. The __adventure__ taught you patience, observation, and that being __brave__ doesn\'t always mean going first \u2014 sometimes it means doing the right thing, even when it\'s quiet.<br><br>Next summer, Dr. Chen already has a new expedition planned. And this time, you\'re the lead assistant.',tip:'\ud83d\udca1 Sometimes the quiet path teaches the deepest lessons. Adventure awaits you next time!'};
+
+// =============================================================================
+//   ""
+//   CSSJS  GAME_TITLE / GAME_TYPE / WORDS / G{}
+//   start()  R('start')
+// =============================================================================
+
+var V=[];
+function R(id){var c=G[id];if(!c){document.getElementById('content').innerHTML='<p style="color:#fff">Error: chapter not found.</p>';return;}V.push({id:id,choice:null,title:c.title||''});var box=document.getElementById('content');if(c.e){E(c);return;}var stepIdx=V.length;var prevHtml='';if(V.length>1&&V[V.length-2]&&V[V.length-2].choice){prevHtml='<div style="font-size:0.8rem;color:rgba(255,215,0,0.5);padding:8px 14px;margin-bottom:14px;border-radius:8px;background:rgba(255,215,0,0.05);line-height:1.6">\u21b3 <span style="font-weight:600">Your choice:</span> <span style="color:#ffd700">'+V[V.length-2].choice+'</span></div>';}var opts='';for(var i=0;i<c.choices.length;i++){var esc=c.choices[i].t.replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/"/g,"&quot;");opts+='<button class="choice-btn" onclick="makeChoice(\''+c.choices[i].n+'\',\''+esc+'\')"><span class="choice-num">'+(i+1)+'</span><span>'+c.choices[i].t+'</span></button>';}box.innerHTML='<div class="top-bar"><span class="badge">Chapter '+stepIdx+'</span><span class="step">Path: '+stepIdx+' steps</span></div><div class="game-title"><h1>'+GAME_TITLE+'</h1></div><div class="chapter-title">'+c.title+'</div><div class="story-box">'+prevHtml+c.text+'</div><div class="choices-label">\u2014 Make Your Choice \u2014</div><div class="choices">'+opts+'</div>';}
+function makeChoice(nextId,choiceText){if(V.length>0)V[V.length-1].choice=choiceText;var safeText=choiceText.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");var overlay=document.createElement('div');overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,10,46,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;animation:fadeIn 0.3s ease';overlay.innerHTML='<div style="text-align:center;max-width:500px;padding:30px"><div style="font-size:13px;color:rgba(255,215,0,0.5);letter-spacing:2px;margin-bottom:14px;text-transform:uppercase">You Chose</div><div style="font-size:19px;color:#ffd700;font-weight:700;line-height:1.6">"'+safeText+'"</div><div style="margin-top:28px;width:40px;height:2px;background:rgba(255,215,0,0.3);margin-left:auto;margin-right:auto"></div><div style="margin-top:18px;color:rgba(255,255,255,0.25);font-size:13px">Continuing...</div></div>';document.getElementById('content').appendChild(overlay);setTimeout(function(){if(overlay.parentNode)overlay.parentNode.removeChild(overlay);R(nextId);},1200);}
+function E(c){var box=document.getElementById('content');var timelineHtml='';if(V.length>0){var steps=[];for(var i=0;i<V.length;i++){var step=V[i];steps.push('<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0"><span style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(255,215,0,0.15);color:#ffd700;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold">'+(i+1)+'</span><div style="flex:1;font-size:13px;color:#ccc;line-height:1.5"><div style="color:#ffd700;font-weight:600;font-size:13px">'+(step.title||'Step '+(i+1))+'</div>'+(step.choice?'<div style="font-size:12px;color:rgba(255,215,0,0.55);margin-top:1px">\u21b3 '+step.choice+'</div>':'')+'</div></div>');}timelineHtml=steps.join('');}try{var d={title:GAME_TITLE,storyType:GAME_TYPE,date:new Date().toISOString().slice(0,10),endingTitle:c.title,endingTy:c.ty||'unknown',badge:c.badge,timeline:V,words:WORDS};var h=JSON.parse(localStorage.getItem('wordQuest_gameHistory')||'[]');h.push(d);localStorage.setItem('wordQuest_gameHistory',JSON.stringify(h));}catch(e){}box.innerHTML='<div class="ending-screen"><div class="ending-badge" style="background:'+c.bbg+';color:#1a1a2e">'+c.badge+'</div><div class="ending-title">'+c.title+'</div><div class="ending-text">'+c.text+'</div><div class="ending-tip">'+c.tip+'</div><br><div style="text-align:left;padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;margin:12px 0;max-height:280px;overflow-y:auto"><div style="font-size:13px;color:rgba(255,215,0,0.55);letter-spacing:2px;margin-bottom:10px;text-align:center;text-transform:uppercase">\ud83d\udcdc Your Story Timeline</div>'+timelineHtml+'</div><br><button class="btn-yellow" onclick="S()">\u25b6 Play Again</button>&nbsp;&nbsp;<button class="btn-ghost" onclick="B()">\u2190 Go Back</button>&nbsp;&nbsp;<button class="btn-ghost" onclick="startReview()">\ud83d\udcdd Review Words</button></div>';}
+function N(id){R(id);}function S(){V=[];R('start');}function B(){if(V.length<=1){S();return;}V.pop();var p=V[V.length-1];V.pop();R(p?p.id:'start');}
+var _reviewState=null;function startReview(){_reviewState={words:WORDS.slice().sort(function(){return 0.5-Math.random()}),idx:0,correct:0,wrong:[]};showReviewQuestion();}
+function showReviewQuestion(){var s=_reviewState;if(s.idx>=s.words.length){showReviewResult();return;}var w=s.words[s.idx];var wp=WORDS.filter(function(x){return x.w!==w.w}).map(function(x){return x.m}).sort(function(){return 0.5-Math.random()});var o=[w.m];for(var i=0;i<3&&i<wp.length;i++)o.push(wp[i]);o.sort(function(){return 0.5-Math.random()});var h='<div class="ending-screen"><div class="ending-badge" style="background:linear-gradient(135deg,#4CAF50,#2196F3);color:#fff">\ud83d\udcdd Word Review</div><div class="ending-title" style="font-size:20px;margin-bottom:20px">What does "<b>'+w.w+'</b>" mean?</div><div class="choices">';for(var j=0;j<o.length;j++){h+='<button class="choice-btn" onclick="checkReviewAnswer(\''+w.w+'\',\''+o[j].replace(/'/g,"\\'")+'\',this)"><span class="choice-num">'+(j+1)+'</span><span>'+o[j]+'</span></button>';}h+='</div><p style="color:rgba(255,255,255,0.3);font-size:13px;margin-top:16px">'+(s.idx+1)+'/'+s.words.length+'</p></div>';document.getElementById('content').innerHTML=h;}
+function checkReviewAnswer(word,selected,btn){var s=_reviewState;var correct=WORDS.filter(function(w){return w.w===word})[0].m;document.querySelectorAll('.choice-btn').forEach(function(b){b.style.pointerEvents='none'});if(selected===correct){btn.style.background='rgba(76,175,80,0.3)';btn.style.borderColor='#4CAF50';s.correct++;}else{btn.style.background='rgba(244,67,54,0.3)';btn.style.borderColor='#f44336';document.querySelectorAll('.choice-btn').forEach(function(b){if(b.querySelector('span:last-child').textContent===correct){b.style.background='rgba(76,175,80,0.3)';b.style.borderColor='#4CAF50';}});s.wrong.push({w:word,m:correct});}setTimeout(function(){s.idx++;showReviewQuestion();},1200);}
+function showReviewResult(){var s=_reviewState;var pct=Math.round((s.correct/s.words.length)*100);var wh='';if(s.wrong.length>0){wh='<div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.04);border-radius:12px;text-align:left"><p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:8px">Words to review:</p>';for(var i=0;i<s.wrong.length;i++){wh+='<span class="tag" style="background:rgba(244,67,54,0.15);color:#ff8a80">'+s.wrong[i].w+' = '+s.wrong[i].m+'</span>&nbsp;';}wh+='</div>';}document.getElementById('content').innerHTML='<div class="ending-screen"><div class="ending-badge" style="background:linear-gradient(135deg,#ffd700,#ffaa00);color:#1a1a2e">\u2705 Review Complete!</div><div class="ending-title">'+s.correct+'/'+s.words.length+' ('+pct+'%)</div><p style="color:#e0e0e0;font-size:15px;margin-bottom:8px">'+(pct===100?'Perfect! You know all the words!':pct>=70?'Great job! Almost there!':'Keep practicing! You\'ll get it!')+'</p>'+wh+'<br><button class="btn-yellow" onclick="startReview()">\ud83d\udd04 Review Again</button>&nbsp;&nbsp;<button class="btn-ghost" onclick="S()">\u2190 Back to Story</button></div>';}
+R('start');
+</script></body></html>

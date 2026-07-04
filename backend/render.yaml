@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: story-english-api
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PORT
+        value: "5050"

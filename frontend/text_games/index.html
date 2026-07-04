@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordQuest - Choose Your Story</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;background:#0a0a2e;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px}
+.header{text-align:center;margin-bottom:40px}
+.header h1{font-size:36px;color:#ffd700;font-weight:900;letter-spacing:2px;margin-bottom:8px}
+.header p{font-size:15px;color:rgba(255,255,255,0.45);letter-spacing:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;max-width:1100px;width:100%}
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:22px;cursor:pointer;transition:all 0.3s;text-decoration:none;display:block}
+.card:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,215,0,0.4);transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,0.3)}
+.card:active{transform:scale(0.97)}
+.card-icon{font-size:40px;margin-bottom:12px}
+.card-title{font-size:17px;color:#ffd700;font-weight:700;margin-bottom:6px;letter-spacing:1px}
+.card-type{font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.card-desc{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.7}
+.card-words{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.card-word{font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(255,215,0,0.08);color:rgba(255,215,0,0.65)}
+.footer{margin-top:40px;text-align:center;color:rgba(255,255,255,0.2);font-size:12px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeIn 0.5s ease backwards}
+.card:nth-child(1){animation-delay:0.05s}
+.card:nth-child(2){animation-delay:0.1s}
+.card:nth-child(3){animation-delay:0.15s}
+.card:nth-child(4){animation-delay:0.2s}
+.card:nth-child(5){animation-delay:0.25s}
+.card:nth-child(6){animation-delay:0.3s}
+.card:nth-child(7){animation-delay:0.35s}
+.card:nth-child(8){animation-delay:0.4s}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>WordQuest</h1>
+<p>Choose your story. Learn new words. Shape your adventure.</p>
+</div>
+<div class="grid">
+
+<a class="card" href="adventure.html">
+<div class="card-icon">&#x1F9ED;</div>
+<div class="card-title">The Lost Temple</div>
+<div class="card-type">Adventure</div>
+<div class="card-desc">Discover an ancient map in Grandpa's attic and journey through the jungle to find the legendary Sun Temple and its hidden treasure.</div>
+<div class="card-words">
+<span class="card-word">explore</span><span class="card-word">ancient</span><span class="card-word">treasure</span><span class="card-word">brave</span>
+</div>
+</a>
+
+<a class="card" href="survival.html">
+<div class="card-icon">&#x1F3DD;</div>
+<div class="card-title">Wild Island</div>
+<div class="card-type">Survival</div>
+<div class="card-desc">After a plane crash leaves you stranded on a remote island, use your wits and courage to build shelter, find food, and signal for rescue.</div>
+<div class="card-words">
+<span class="card-word">survive</span><span class="card-word">shelter</span><span class="card-word">rescue</span><span class="card-word">hope</span>
+</div>
+</a>
+
+<a class="card" href="scifi.html">
+<div class="card-icon">&#x1F6F0;</div>
+<div class="card-title">Starlight Mission</div>
+<div class="card-type">Sci-Fi</div>
+<div class="card-desc">As a young cadet aboard the spaceship Horizon, respond to a mysterious alien signal from Kepler-7b and make first contact with the Lumen.</div>
+<div class="card-words">
+<span class="card-word">planet</span><span class="card-word">signal</span><span class="card-word">mission</span><span class="card-word">galaxy</span>
+</div>
+</a>
+
+<a class="card" href="mystery.html">
+<div class="card-icon">&#x1F50E;</div>
+<div class="card-title">The Missing Painting</div>
+<div class="card-type">Mystery</div>
+<div class="card-desc">A priceless painting vanishes from your school art show. Gather clues, question suspects, and uncover the truth behind the theft.</div>
+<div class="card-words">
+<span class="card-word">mystery</span><span class="card-word">clue</span><span class="card-word">investigate</span><span class="card-word">suspect</span>
+</div>
+</a>
+
+<a class="card" href="fairytale.html">
+<div class="card-icon">&#x1F3F0;</div>
+<div class="card-title">The Enchanted Garden</div>
+<div class="card-type">Fairy Tale</div>
+<div class="card-desc">A golden key found in your grandmother's garden opens a door to a magical kingdom, where a wishing well can grant your deepest wish.</div>
+<div class="card-words">
+<span class="card-word">enchanted</span><span class="card-word">castle</span><span class="card-word">magical</span><span class="card-word">kingdom</span>
+</div>
+</a>
+
+<a class="card" href="magicschool.html">
+<div class="card-icon">&#x1F9D9;</div>
+<div class="card-title">The Crystal Tower</div>
+<div class="card-type">Magic School</div>
+<div class="card-desc">Enroll at Starfall Academy, uncover the secret of the forbidden Crystal Tower, and help a professor save a sick dragon in the forest.</div>
+<div class="card-words">
+<span class="card-word">spell</span><span class="card-word">wizard</span><span class="card-word">potion</span><span class="card-word">dragon</span>
+</div>
+</a>
+
+<a class="card" href="animal.html">
+<div class="card-icon">&#x1F98A;</div>
+<div class="card-title">Forest Rescue</div>
+<div class="card-type">Animal</div>
+<div class="card-desc">Find an injured fox cub in the woods. Rescue it, nurse it back to health, and learn what it truly means to care for a wild creature.</div>
+<div class="card-words">
+<span class="card-word">rescue</span><span class="card-word">brave</span><span class="card-word">forest</span><span class="card-word">kindness</span>
+</div>
+</a>
+
+<a class="card" href="school.html">
+<div class="card-icon">&#x1F4DA;</div>
+<div class="card-title">Brave Voices</div>
+<div class="card-type">School</div>
+<div class="card-desc">Lead a team in a community project competition. Help a quiet classmate find his voice and discover that true courage lifts others up.</div>
+<div class="card-words">
+<span class="card-word">courage</span><span class="card-word">teamwork</span><span class="card-word">leader</span><span class="card-word">project</span>
+</div>
+</a>
+
+</div>
+<div class="footer">WordQuest &#x00B7; 8 Stories &#x00B7; 80 Words &#x00B7; Created for Ages 7\u201316</div>
+</body>
+</html>

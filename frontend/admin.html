@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理面板 - 故事英语</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .admin-header { display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
+  .admin-header h2 { margin:0; font-size:1.1rem; }
+  .tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:2px solid var(--border); padding-bottom:8px; }
+  .tab { padding:6px 16px; border-radius:8px; cursor:pointer; font-size:0.85rem; color:var(--text-light); transition:all 0.2s; }
+  .tab:hover { background:var(--primary-light); }
+  .tab.active { background:var(--primary); color:#fff; font-weight:600; }
+  .badge-active { color:#27ae60; font-weight:600; }
+  .badge-warning { color:#f39c12; font-weight:600; }
+  .badge-expired { color:#e74c3c; font-weight:600; }
+  .stat-card { background:#f8f9ff; border-radius:10px; padding:16px; text-align:center; }
+  .stat-num { font-size:1.5rem; font-weight:700; color:var(--primary); }
+  .stat-label { font-size:0.78rem; color:var(--text-light); margin-top:4px; }
+  .back-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.85rem; background:var(--card); border:1px solid var(--border); color:var(--text); transition:all 0.2s; }
+  .back-btn:hover { background:var(--primary-light); border-color:var(--primary); }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; }
+  .modal { background:var(--card); border-radius:12px; padding:24px; max-width:480px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
+</style>
+</head>
+<body>
+
+<div id="admin-login" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
+  <div class="card" style="max-width:360px;width:100%;padding:32px">
+    <h2 style="text-align:center;margin-bottom:8px">🔐 管理面板</h2>
+    <p style="text-align:center;font-size:0.85rem;color:var(--text-light);margin-bottom:20px">请输入管理员密码</p>
+    <div class="form-group"><label>密码</label><input id="admin-pwd" class="input" type="password" placeholder="管理密码"></div>
+    <button class="btn btn-block btn-lg" onclick="adminLogin()">登录</button>
+    <p id="admin-err" style="color:var(--secondary);font-size:0.8rem;margin-top:10px;display:none"></p>
+  </div>
+</div>
+
+<div id="admin-panel" style="display:none;max-width:900px;margin:0 auto;padding:20px">
+  <div class="admin-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="back-btn" onclick="goBack()">← 返回主页</button>
+      <h2>🔐 管理面板</h2>
+    </div>
+    <button class="btn btn-ghost" style="font-size:0.8rem" onclick="adminLogout()">退出登录</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="users" onclick="switchTab('users')">👥 用户管理</div>
+    <div class="tab" data-tab="stats" onclick="switchTab('stats')">📊 统计看板</div>
+    <div class="tab" data-tab="words" onclick="switchTab('words')">📖 单词库</div>
+  </div>
+
+  <div id="tab-users">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <p style="font-size:0.85rem;color:var(--text-light)" id="user-count"></p>
+      <button class="btn" onclick="showAddUser()">➕ 新增用户</button>
+    </div>
+    <div class="card" style="overflow-x:auto;padding:0">
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+        <thead>
+          <tr style="background:#f8f9ff">
+            <th style="padding:10px 8px;text-align:left">UID</th>
+            <th style="padding:10px 8px;text-align:left">姓名</th>
+            <th style="padding:10px 8px;text-align:left">年龄</th>
+            <th style="padding:10px 8px;text-align:left">等级</th>
+            <th style="padding:10px 8px;text-align:left">购买天数</th>
+            <th style="padding:10px 8px;text-align:left">激活日</th>
+            <th style="padding:10px 8px;text-align:left">到期日</th>
+            <th style="padding:10px 8px;text-align:left">状态</th>
+            <th style="padding:10px 8px;text-align:left">操作</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-stats" style="display:none">
+    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:12px">所有用户的汇总数据</p>
+    <div id="stats-content"></div>
+    <div style="margin-top:20px">
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px">选择用户查看详细学习报表</p>
+      <select id="stats-user-select" class="input" style="max-width:200px" onchange="loadUserTrends(this.value)">
+        <option value="">-- 选择用户 --</option>
+      </select>
+      <div id="stats-user-detail" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <div id="tab-words" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <p style="font-size:0.85rem;color:var(--text-light)">管理全局单词库（含释义、音标、例句）</p>
+      <button class="btn" onclick="showAddWord()">➕ 新增单词</button>
+    </div>
+    <div class="card" style="overflow-x:auto;padding:0">
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+        <thead>
+          <tr style="background:#f8f9ff">
+            <th style="padding:10px 8px;text-align:left">单词</th>
+            <th style="padding:10px 8px;text-align:left">音标</th>
+            <th style="padding:10px 8px;text-align:left">释义</th>
+            <th style="padding:10px 8px;text-align:left">例句</th>
+            <th style="padding:10px 8px;text-align:left">操作</th>
+          </tr>
+        </thead>
+        <tbody id="words-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE_ADMIN = '/api/deepseek';
+let usersData = [];
+
+function goBack() {
+  window.close();
+  // fallback: 如果 window.close 被浏览器阻止，显示返回链接
+  document.body.innerHTML = '<div style="text-align:center;padding:40px"><p>请关闭此标签页</p><br><a href="index.html" style="color:var(--primary)">← 返回故事英语首页</a></div>';
+}
+
+// ==================== Toast ====================
+
+function toast(msg, type) {
+  const el = document.createElement('div');
+  const bg = type === 'error' ? '#ff6b6b' : type === 'success' ? '#6bcb77' : '#4f6ef7';
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;color:#fff;font-size:0.85rem;z-index:99999;background:' + bg + ';box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.3s';
+  document.body.appendChild(el);
+  setTimeout(function() { el.style.opacity = '0'; setTimeout(function() { el.remove(); }, 300); }, 2000);
+}
+
+// ==================== Admin Login ====================
+
+function adminLogin() {
+  const pwd = document.getElementById('admin-pwd').value.trim();
+  const err = document.getElementById('admin-err');
+  fetch(API_BASE_ADMIN + '/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pwd })
+  })
+  .then(r => {
+    if (!r.ok) throw new Error('密码错误');
+    err.style.display = 'none';
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    loadUsers();
+    loadUsersForSelect();
+  })
+  .catch(e => { err.textContent = e.message; err.style.display = 'block'; });
+}
+
+function adminLogout() {
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('admin-login').style.display = 'block';
+  document.getElementById('admin-pwd').value = '';
+}
+
+// ==================== Tab / Initialization ====================
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+  document.getElementById('tab-users').style.display = name === 'users' ? 'block' : 'none';
+  document.getElementById('tab-stats').style.display = name === 'stats' ? 'block' : 'none';
+  document.getElementById('tab-words').style.display = name === 'words' ? 'block' : 'none';
+  if (name === 'stats') loadStats();
+  if (name === 'words') loadWords();
+}
+
+// Auto switch tab if URL hash is set (e.g. admin.html#stats)
+window.addEventListener('hashchange', function() {
+  const tab = location.hash.replace('#', '');
+  if (['users','stats','words'].includes(tab)) switchTab(tab);
+});
+if (['users','stats','words'].includes(location.hash.replace('#',''))) {
+  switchTab(location.hash.replace('#', ''));
+}
+
+// ==================== Users CRUD ====================
+
+async function loadUsers() {
+  try {
+    const resp = await fetch(API_BASE_ADMIN + '/api/admin/users');
+    usersData = await resp.json();
+  } catch(e) { usersData = []; }
+  renderUsers();
+}
+
+function renderUsers() {
+  const tbody = document.getElementById('users-tbody');
+  const countEl = document.getElementById('user-count');
+  const today = new Date();
+  countEl.textContent = `共 ${usersData.length} 个用户`;
+  if (!usersData.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-light)">暂无用户</td></tr>';
+    return;
+  }
+  tbody.innerHTML = usersData.map(u => {
+    const expire = new Date(u.expireDate || u.activateDate);
+    const daysLeft = u.expireDate ? Math.ceil((new Date(u.expireDate) - today) / 86400000) : 0;
+    const expired = daysLeft <= 0;
+    const statusClass = expired ? 'badge-expired' : daysLeft <= 7 ? 'badge-warning' : 'badge-active';
+    const statusText = expired ? '已过期' : daysLeft <= 7 ? `${daysLeft}天后到期` : '有效';
+    return `<tr>
+      <td style="padding:8px"><strong>${u.uid}</strong></td>
+      <td style="padding:8px">${u.name}</td>
+      <td style="padding:8px">${u.age}</td>
+      <td style="padding:8px">${u.level}</td>
+      <td style="padding:8px">${u.totalDays}</td>
+      <td style="padding:8px">${u.activateDate || '-'}</td>
+      <td style="padding:8px">${u.expireDate || '-'}</td>
+      <td style="padding:8px"><span class="${statusClass}">${statusText}</span></td>
+      <td style="padding:8px">
+        <button class="btn-sm" style="font-size:0.8rem;padding:2px 10px" onclick="editUser('${u.uid}')">编辑</button>
+        <button class="btn-sm btn-secondary" style="font-size:0.8rem;padding:2px 10px" onclick="deleteUser('${u.uid}')">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showAddUser() { showUserModal(null); }
+function editUser(uid) { const u = usersData.find(x => x.uid === uid); if (u) showUserModal(u); }
+
+function showUserModal(user) {
+  const isNew = !user;
+  document.getElementById('modal-overlay')?.remove();
+  const div = document.createElement('div');
+  div.className = 'modal-overlay';
+  div.id = 'modal-overlay';
+  div.innerHTML = `
+    <div class="modal">
+      <h3 style="margin-bottom:16px">${isNew ? '新增用户' : '编辑用户'}</h3>
+      <div class="form-group"><label>UID</label>
+        <input id="m-uid" class="input" value="${user?.uid || ''}" ${!isNew ? '' : ''}>
+        ${!isNew ? '<div style="font-size:0.75rem;color:#e67e22;margin-top:2px">修改 UID 会同步更新所有关联数据</div>' : ''}
+      </div>
+      <div class="form-group"><label>密码</label><input id="m-pwd" class="input" type="password" placeholder="${isNew ? '默认 123456' : '留空则不修改'}"></div>
+      <div class="form-group"><label>姓名</label><input id="m-name" class="input" value="${user?.name || ''}"></div>
+      <div class="form-group"><label>年龄</label><input id="m-age" class="input" type="number" value="${user?.age || 8}"></div>
+      <div class="form-group"><label>等级</label>
+        <select id="m-level" class="input">
+          ${['L1','L2','L3','L4'].map(l => `<option value="${l}" ${user?.level === l ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>购买天数</label><input id="m-days" class="input" type="number" value="${user?.totalDays || 30}"></div>
+      <div class="form-group"><label>激活日</label><input id="m-activate" class="input" type="date" value="${user?.activateDate || new Date().toISOString().split('T')[0]}"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-overlay').remove()">取消</button>
+        <button class="btn" onclick="saveUserModal('${isNew ? '' : user.uid}')">保存</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+}
+
+async function saveUserModal(existingUid) {
+  const isNew = !existingUid;
+  const uid = document.getElementById('m-uid').value.trim();
+  if (!uid) { toast('UID 不能为空', 'error'); return; }
+  const data = {
+    uid, password: document.getElementById('m-pwd').value.trim() || undefined,
+    name: document.getElementById('m-name').value.trim() || uid,
+    age: parseInt(document.getElementById('m-age').value) || 8,
+    level: document.getElementById('m-level').value,
+    totalDays: parseInt(document.getElementById('m-days').value) || 30,
+    activateDate: document.getElementById('m-activate').value,
+  };
+  try {
+    if (isNew) {
+      const resp = await fetch(API_BASE_ADMIN + '/api/admin/users', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+      });
+      if (!resp.ok) { const err = await resp.json(); toast(err.error || '添加失败', 'error'); return; }
+      toast('用户已添加', 'success');
+    } else if (uid !== existingUid) {
+      // UID 已修改：先重命名，再更新其他字段
+      const renameResp = await fetch(API_BASE_ADMIN + '/api/admin/users/' + existingUid + '/rename', {
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ newUid: uid })
+      });
+      if (!renameResp.ok) { const err = await renameResp.json(); toast(err.error || '重命名失败', 'error'); return; }
+      // 重新用新 UID 保存其他字段
+      const updateResp = await fetch(API_BASE_ADMIN + '/api/admin/users/' + uid, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+      });
+      if (!updateResp.ok) { const err = await updateResp.json(); toast(err.error || '更新失败', 'error'); return; }
+      toast('用户 UID 已修改，数据已同步迁移', 'success');
+    } else {
+      const resp = await fetch(API_BASE_ADMIN + '/api/admin/users/' + existingUid, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+      });
+      if (!resp.ok) { const err = await resp.json(); toast(err.error || '更新失败', 'error'); return; }
+      toast('用户已更新', 'success');
+    }
+    document.getElementById('modal-overlay').remove();
+    loadUsers();
+  } catch(e) { toast('操作失败: ' + e.message, 'error'); }
+}
+
+async function deleteUser(uid) {
+  if (!confirm(`确定要删除 ${uid} 吗？\n\n（90天内可恢复）`)) return;
+  try {
+    await fetch(API_BASE_ADMIN + '/api/admin/users/' + uid, { method: 'DELETE' });
+    loadUsers();
+    toast('已删除（90天保留期内）', 'info');
+  } catch(e) { toast('删除失败: ' + e.message, 'error'); }
+}
+
+// ==================== Stats ====================
+
+async function loadStats() {
+  const el = document.getElementById('stats-content');
+  try {
+    const resp = await fetch(API_BASE_ADMIN + '/api/admin/dashboard');
+    const d = await resp.json();
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
+        <div class="stat-card"><div class="stat-num">${d.total_users}</div><div class="stat-label">总用户数</div></div>
+        <div class="stat-card"><div class="stat-num">${d.active_today}</div><div class="stat-label">今日活跃</div></div>
+        <div class="stat-card"><div class="stat-num">${d.today_duration_minutes}分</div><div class="stat-label">今日学习时长</div></div>
+        <div class="stat-card"><div class="stat-num">${d.avg_accuracy !== null ? d.avg_accuracy + '%' : '--'}</div><div class="stat-label">平均正确率</div></div>
+        <div class="stat-card"><div class="stat-num">${d.total_stories}</div><div class="stat-label">总故事数</div></div>
+        <div class="stat-card"><div class="stat-num">${d.word_library_count}</div><div class="stat-label">单词库词汇</div></div>
+      </div>`;
+  } catch(e) { el.innerHTML = '<p style="text-align:center;padding:24px;color:var(--text-light)">统计加载失败</p>'; }
+  
+  // Also refresh user list for the select dropdown
+  loadUsersForSelect();
+}
+
+async function loadUsersForSelect() {
+  try {
+    const resp = await fetch(API_BASE_ADMIN + '/api/admin/users');
+    const users = await resp.json();
+    const sel = document.getElementById('stats-user-select');
+    sel.innerHTML = '<option value="">-- 选择用户 --</option>' +
+      users.map(u => `<option value="${u.uid}">${u.uid} (${u.name})</option>`).join('');
+  } catch(e) {}
+}
+
+async function loadUserTrends(uid) {
+  const el = document.getElementById('stats-user-detail');
+  if (!uid) { el.innerHTML = ''; return; }
+  
+  const period = document.getElementById('stats-period')?.value || 'week';
+  el.innerHTML = '<p style="text-align:center;padding:12px;color:var(--text-light)">加载中...</p>';
+  
+  try {
+    // Load both stats and trends in parallel
+    const [statsResp, trendsResp] = await Promise.all([
+      fetch(API_BASE_ADMIN + '/api/admin/users/' + uid + '/stats'),
+      fetch(API_BASE_ADMIN + '/api/admin/users/' + uid + '/trends?period=' + period),
+    ]);
+    const s = await statsResp.json();
+    const trends = await trendsResp.json();
+
+    el.innerHTML = `
+      <div class="card" style="padding:16px">
+        <h4 style="margin-bottom:12px">${uid} 的学习报表</h4>
+
+        <!-- Stats cards -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+          <div class="stat-card"><div class="stat-num">${s.total_stories}</div><div class="stat-label">总故事数</div></div>
+          <div class="stat-card"><div class="stat-num">${s.total_days}</div><div class="stat-label">使用天数</div></div>
+          <div class="stat-card"><div class="stat-num">${Math.round(s.total_duration_seconds / 60)}分</div><div class="stat-label">总使用时长</div></div>
+          <div class="stat-card"><div class="stat-num">${s.total_words_count}</div><div class="stat-label">记忆单词量</div></div>
+          <div class="stat-card"><div class="stat-num">${s.review_accuracy !== null ? s.review_accuracy + '%' : '--'}</div><div class="stat-label">单词正确率</div></div>
+        </div>
+
+        <!-- Trend Chart -->
+        <div style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <h5 style="margin:0">学习趋势</h5>
+            <select id="stats-period" class="input" style="max-width:110px;font-size:0.78rem;padding:2px 8px" onchange="loadUserTrends('${uid}')">
+               <option value="3" ${period === '3' ? 'selected' : ''}>近3天</option>
+               <option value="week" ${period === 'week' ? 'selected' : ''}>近7天</option>
+               <option value="15" ${period === '15' ? 'selected' : ''}>近15天</option>
+               <option value="month" ${period === 'month' ? 'selected' : ''}>近30天</option>
+             </select>
+          </div>
+          ${renderTrendChart(trends)}
+        </div>
+
+        <!-- Stories list (clickable) -->
+        <h5 style="margin-bottom:8px">生成的故事</h5>
+        ${s.stories && s.stories.length > 0
+          ? '<div style="max-height:300px;overflow-y:auto">' + s.stories.map(st =>
+              '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;font-size:0.82rem;cursor:pointer;transition:background 0.15s" onclick="viewStoryDetail(\'' + uid + '\',\'' + st.storyId + '\')" onmouseover="this.style.background=\'#f8f9ff\'" onmouseout="this.style.background=\'transparent\'">' +
+              '<span style="font-weight:600">' + st.title + '</span>' +
+              '<span style="color:var(--text-light);font-size:0.75rem">[' + st.type + ']</span>' +
+              '<span style="color:var(--text-light);font-size:0.75rem">' + (st.words || []).join(', ') + '</span>' +
+              '<span style="color:var(--text-light);font-size:0.75rem;margin-left:auto">' + (st.date || '') + '</span>' +
+              '<span style="color:var(--primary);font-size:0.7rem">查看 →</span>' +
+              '</div>'
+            ).join('') + '</div>'
+          : '<p style="font-size:0.82rem;color:var(--text-light)">暂无故事</p>'}
+      </div>`;
+  } catch(e) { el.innerHTML = '<p style="text-align:center;color:var(--text-light)">加载失败</p>'; }
+}
+
+function renderTrendChart(trends) {
+  if (!trends || trends.length === 0) {
+    return '<p style="font-size:0.82rem;color:var(--text-light);text-align:center;padding:16px">暂无趋势数据</p>';
+  }
+
+  const maxStories = Math.max(1, ...trends.map(d => d.stories));
+  const barMaxH = 80;
+
+  return '<div style="display:flex;align-items:flex-end;gap:2px;height:100px;padding:4px 0;border-bottom:1px solid var(--border)">' +
+    trends.map(d => {
+      const h = (d.stories / maxStories) * barMaxH;
+      const label = d.date ? d.date.slice(5) : ''; // Show MM-DD
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">' +
+        '<span style="font-size:0.6rem;color:var(--text-light);line-height:1">' + (d.stories || '') + '</span>' +
+        '<div style="width:100%;height:' + Math.max(h, 2) + 'px;background:var(--primary);border-radius:3px 3px 0 0;min-height:2px;transition:height 0.3s" title="' + d.date + ': ' + d.stories + '个故事, ' + d.duration_minutes + '分钟"></div>' +
+        '<span style="font-size:0.55rem;color:var(--text-light)">' + label + '</span>' +
+      '</div>';
+    }).join('') +
+    '</div>' +
+    '<div style="display:flex;gap:16px;margin-top:4px;font-size:0.72rem;color:var(--text-light)">' +
+    '<span>■ 故事数（柱状图）</span>' +
+    '</div>';
+}
+
+async function viewStoryDetail(uid, storyId) {
+  document.getElementById('modal-overlay')?.remove();
+  const div = document.createElement('div');
+  div.className = 'modal-overlay';
+  div.id = 'modal-overlay';
+  div.innerHTML = '<div class="modal" style="max-width:800px;max-height:90vh"><p style="text-align:center;padding:30px;color:var(--text-light)">加载中...</p></div>';
+  document.body.appendChild(div);
+
+  try {
+    const resp = await fetch(API_BASE_ADMIN + '/api/story/detail/' + uid + '/' + storyId);
+    if (!resp.ok) throw new Error('not found');
+    const story = await resp.json();
+
+    const chEntries = Object.entries(story.chapters || {});
+
+    // Build the full story HTML
+    let chaptersHtml = '';
+    for (const [chId, ch] of chEntries) {
+      const isEnding = ch.e;
+      const badgeMap = { gold: '🏆', silver: '🥈', bronze: '🥉' };
+      const badge = isEnding ? (badgeMap[ch.ty] || '🔚') : '📄';
+      const bgColor = isEnding ? 'rgba(255,215,0,0.06)' : '';
+      const text = ch.text || '';
+      // Escape HTML in text to prevent injection
+      const safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
+      chaptersHtml += '<div style="padding:12px;border-bottom:1px solid #eee;' + bgColor + '">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">' +
+        '<span>' + badge + '</span>' +
+        '<strong style="font-size:0.85rem">' + (ch.title || chId) + '</strong>' +
+        (isEnding && ch.bbg ? '<span style="font-size:0.7rem;background:' + ch.bbg + ';color:#fff;padding:1px 8px;border-radius:4px">' + (ch.badge || ch.ty) + '</span>' : '') +
+        '</div>' +
+        '<div style="font-size:0.82rem;color:var(--text);line-height:1.7;white-space:normal">' + safeText + '</div>' +
+        (isEnding && ch.tip ? '<div style="font-size:0.78rem;color:var(--primary);margin-top:8px;padding:8px 10px;background:rgba(79,110,247,0.08);border-radius:6px">💡 ' + ch.tip + '</div>' : '') +
+        '</div>';
+    }
+
+    div.innerHTML = `
+      <div class="modal" style="max-width:800px;max-height:90vh;display:flex;flex-direction:column">
+        <div style="flex-shrink:0">
+          <h3 style="margin-bottom:4px">${story.title}</h3>
+          <p style="font-size:0.78rem;color:var(--text-light);margin-bottom:12px">
+            类型: ${story.type || '-'} | 等级: ${story.level || '-'} | 单词: ${(story.words || []).join(', ')} | 章节: ${chEntries.length}
+          </p>
+        </div>
+        <div style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 8px;background:#fafbff">
+          ${chaptersHtml}
+        </div>
+        <div style="flex-shrink:0;display:flex;justify-content:flex-end;margin-top:12px">
+          <button class="btn" onclick="document.getElementById('modal-overlay').remove()">关闭</button>
+        </div>
+      </div>`;
+  } catch(e) {
+    div.innerHTML = '<div class="modal" style="max-width:400px"><p style="text-align:center;padding:20px;color:var(--secondary)">故事详情加载失败</p><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn btn-ghost" onclick="document.getElementById(\'modal-overlay\').remove()">关闭</button></div></div>';
+  }
+}
+
+// ==================== Word Library ====================
+
+async function loadWords(search) {
+  const tbody = document.getElementById('words-tbody');
+  try {
+    let url = API_BASE_ADMIN + '/api/admin/words';
+    if (search) url += '?search=' + encodeURIComponent(search);
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('not found');
+    const words = await resp.json();
+    if (!words.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-light)">暂无单词</td></tr>';
+      return;
+    }
+    tbody.innerHTML = words.map(w => `<tr>
+      <td style="padding:8px;font-weight:600">${w.word}</td>
+      <td style="padding:8px">${w.phonetic || '-'}</td>
+      <td style="padding:8px">${w.meaning || '-'}</td>
+      <td style="padding:8px;font-size:0.78rem">${w.example_sentence || '-'}</td>
+      <td style="padding:8px">
+        <button class="btn-sm btn-secondary" style="font-size:0.78rem;padding:2px 8px" onclick="deleteWord(${w.id})">删除</button>
+      </td>
+    </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-light)">单词库加载失败（API 尚未就绪）</td></tr>';
+  }
+}
+
+function showAddWord() {
+  document.getElementById('modal-overlay')?.remove();
+  const div = document.createElement('div');
+  div.className = 'modal-overlay';
+  div.id = 'modal-overlay';
+  div.innerHTML = `
+    <div class="modal">
+      <h3 style="margin-bottom:16px">新增单词</h3>
+      <div class="form-group"><label>单词</label><input id="w-word" class="input" placeholder="如: apple"></div>
+      <div class="form-group"><label>音标</label><input id="w-phonetic" class="input" placeholder="如: /ˈæp.əl/"></div>
+      <div class="form-group"><label>释义</label><input id="w-meaning" class="input" placeholder="如: 苹果"></div>
+      <div class="form-group"><label>例句</label><textarea id="w-example" class="input" rows="2" placeholder="I eat an apple every day."></textarea></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-overlay').remove()">取消</button>
+        <button class="btn" onclick="saveWord()">保存</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+}
+
+async function saveWord() {
+  const word = document.getElementById('w-word').value.trim().toLowerCase();
+  if (!word) { toast('请输入单词', 'error'); return; }
+  const data = {
+    word,
+    phonetic: document.getElementById('w-phonetic').value.trim(),
+    meaning: document.getElementById('w-meaning').value.trim(),
+    example: document.getElementById('w-example').value.trim(),
+  };
+  try {
+    const resp = await fetch(API_BASE_ADMIN + '/api/admin/words', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+    });
+    if (!resp.ok) { const err = await resp.json(); toast(err.error || '添加失败', 'error'); return; }
+    toast('单词已添加', 'success');
+    document.getElementById('modal-overlay').remove();
+    loadWords();
+  } catch(e) { toast('操作失败: ' + e.message, 'error'); }
+}
+
+async function deleteWord(id) {
+  if (!confirm('确定删除这个单词？')) return;
+  try {
+    await fetch(API_BASE_ADMIN + '/api/admin/words/' + id, { method: 'DELETE' });
+    loadWords();
+    toast('已删除', 'info');
+  } catch(e) { toast('删除失败', 'error'); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英语单词故事游戏</title>
+  <link rel="stylesheet" href="css/style.css?v=20260628">
+</head>
+<body>
+  <div id="app">
+    <!-- Header (shown after login) -->
+    <header id="app-header" class="hidden">
+      <div class="header-inner">
+        <span class="logo" onclick="router.go('home')">📖 故事英语</span>
+        <div class="header-right">
+          <span id="user-badge" class="user-badge"></span>
+          <span id="user-expire" class="user-expire"></span>
+          <button class="btn-sm" onclick="router.go('upload')">🎮 游戏</button>
+          <button class="btn-sm" onclick="router.go('history')">历史</button>
+          <button class="btn-sm btn-outline" onclick="appLogout()">退出</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main content area -->
+    <main id="main-content">
+      <div id="page-loading" class="page page-center">
+        <div class="spinner"></div>
+        <p>加载中...</p>
+      </div>
+    </main>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- Core app -->
+  <script src="js/app.js?v=20260630"></script>
+  <!-- Pages -->
+  <script src="js/pages/login.js?v=20260630"></script>
+  <script src="js/pages/home.js?v=20260630"></script>
+  <script src="js/pages/upload.js?v=20260630"></script>
+  <script src="js/pages/story.js?v=20260630"></script>
+  <script src="js/pages/review.js?v=20260630"></script>
+  <!-- OCR engine (loaded last, non-blocking) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+</body>
+</html>
