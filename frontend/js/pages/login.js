@@ -50,7 +50,13 @@ async function handleLogin() {
   btn.textContent = '登录中...';
 
   try {
-    const data = await api('POST', '/api/login', { uid, password: pwd });
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, password: pwd })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'HTTP ' + res.status);
     state.user = data;
     safeSet('story_user', JSON.stringify(state.user));
     toast('登录成功！', 'success');
